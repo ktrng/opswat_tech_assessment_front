@@ -12,10 +12,12 @@ const App = () => {
   let [dataId, setDataId] = useState('')
 
 
-  // logic for calculating file hash (MD5)
-  const calcHash = (event) => {
-    //targets the file user selected
+  // Logic for calculating file hash (MD5)
+  const handleFile = (event) => {
+    // Targets the file user selected from file input
     let file = event.target.files[0]
+
+    // Sets targeted file to state
     setSelectedFile({...file})
     console.log('hello there')
     console.log(selectedFile)
@@ -26,12 +28,7 @@ const App = () => {
       if (e.target.readyState == FileReader.DONE) {
         //converts file to hash using crypto-js
         const hash = CryptoJS.MD5(reader.result).toString()
-        console.log(hash)
-        console.log('beforestate')
-        //sets hash to state
         setFileHash(hash)
-        console.log(fileHash)
-        console.log('afterstate')
       }
     })
     reader.readAsDataURL(file)
@@ -57,15 +54,6 @@ const App = () => {
       // ... if hash is not found, file is uploaded using 'uploadFile()' function on line 57
       console.error(error)
     })
-  }
-
-  const handleFile = (event) => {
-    let file = event.target.files[0]
-    console.log(typeof file)
-    console.log(file)
-    setSelectedFile({...file})
-    console.log('state set?')
-    console.log(selectedFile)
   }
 
 
@@ -115,9 +103,9 @@ const App = () => {
   }
 
   // https://stackoverflow.com/questions/26795643/how-to-convert-object-containing-objects-into-array-of-objects
-  let arrayOfObj = null
   
-  //get api key 
+  
+  // The below code block was used to have information displayed while working. It as also my 'workspace' to test things and figure out how things work with the API
   const getAPIKey = () => {
     axios.get('http://localhost:3003/hash/05C12A287334386C94131AB8AA00D08A')
     .then(
@@ -129,20 +117,22 @@ const App = () => {
         console.log(fileInfo.scan_results.scan_details)
         // console.log(Object.keys(fileInfo.scan_results.scan_details)[0])
         // console.log(arrayOfObj)
+
+        // Here is where I tried to convert the "scan_details" object into an array so I could map through it and list all of the scan details
+        let arrayOfObj = null
         console.log('array made??')
         arrayOfObj = Object.entries(fileInfo.scan_results.scan_details).map((e) => ( { [e[0]]: e[1] } ))
         setScanDetails([...arrayOfObj])
         console.log(scanDetails)
         console.log('working.')
         console.log(scanDetails[0]['AegisLab']['scan_time'].toString())
-
       }
     )
     .catch((error) => console.error(error))
   }
 
   
-
+  // Hook to have getAPIKey() run on app load, so I could have some information displayed while working on the front end
   useEffect(() => {
     getAPIKey()
   }, [])
