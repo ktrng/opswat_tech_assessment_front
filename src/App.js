@@ -14,11 +14,11 @@ const App = () => {
 
   // Logic for calculating file hash (MD5)
   const handleFile = (event) => {
-    // Targets the file user selected from file input
+    // Targets the file user selected from file input and sets it to state
+    setSelectedFile(event.target.files[0])
+
     let file = event.target.files[0]
 
-    // Sets targeted file to state
-    setSelectedFile({...file})
     console.log('hello there')
     console.log(selectedFile)
     const reader = new FileReader()
@@ -61,7 +61,7 @@ const App = () => {
   const handleUpload = () => {
     let file = selectedFile
 
-    let formData = new FormData()
+    const formData = new FormData()
 
     formData.append('file', file)
 
@@ -145,9 +145,10 @@ const App = () => {
         <p>asdf</p><br/>
         
         <p>{fileHash}</p>
-        <form onSubmit={checkFile}>
-          <input id="input" type="file" name="file" onChange={(e) => handleFile(e)}></input>
-          <button type="button" onClick={(e) => handleUpload(e)}>Upload File</button>
+        <form onSubmit={(event) => checkFile(event)}>
+          <input id="input" type="file" name="file" onChange={(event) => handleFile(event)}></input>
+          <br/>
+          <button type="submit">Upload File</button>
         </form>
       </div>
       <div>
@@ -159,6 +160,7 @@ const App = () => {
           {scanDetails.map((details, index) => {
             return (
               <>
+                <hr/>
                 <li key={index}>
                   <p>Engine: {scanDetails[index]['AegisLab']['def_time']}</p>
                   <p>Threat Found: {scanDetails[index]['AegisLab']['def_time']}</p>
