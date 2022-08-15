@@ -146,22 +146,24 @@ const App = () => {
         <p>File Name: {fileInfo?.file_info?.display_name}</p>
         <p>Overall Status: {fileInfo?.scan_results?.scan_all_result_a}</p>
         <p>More Details:</p>
-        <ul>
-          {scanDetails.map((details, index) => {
-            return (
-              <>
-                <hr/>
-                <li>
-                  <p>Engine: {engines[index]}</p>
-                  <p>Threat Found: {details.threat_found ? details.threat_found : '0'}</p>
-                  <p>Scan Result: {details.scan_result_i}</p>
-                  <p>Def Time: {details.def_time}</p>
-                </li>
-                <hr/>
-              </>
-            )
-          })}
-        </ul>
+        <div class="details-container">
+          <ul>
+            {scanDetails.map((details, index) => {
+              return (
+                <>
+                  <hr/>
+                  <li>
+                    <p>Engine: {engines[index]}</p>
+                    <p>Threat Found: {details.threat_found ? details.threat_found : '0'}</p>
+                    <p>Scan Result: {details.scan_result_i}</p>
+                    <p>Def Time: {details.def_time}</p>
+                  </li>
+                  <hr/>
+                </>
+              )
+            })}
+          </ul>
+        </div>
       </div>
     </div>
   )
