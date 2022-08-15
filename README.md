@@ -6,7 +6,7 @@ The application isn't fully functioning right now. This was my first experience 
 
 All of the GET routes work, but I am having an issue where the POST route successfully posts to the MetaDefender API, but it is giving an error stating an empty request body was sent. I did some research, and tried to use Multer to fix it, but I have also never used Multer (lol).
 
-As for front end issues, there's the uploading the file bug associated with the backend issue detailed above. Also, there's an issue when repeatedly pulling on the 'data_id' to retrieve results where it does not stop pulling on the 'data_id' as it is stuck in a loop.
+As for front end issues, there's the uploading the file bug associated with the backend issue detailed above. Also, there's an issue when repeatedly pulling on the 'data_id' to retrieve results where it does not stop pulling on the 'data_id' as it is stuck in a loop, but it still displays the information correctly.
 
 
 **TESTING**
