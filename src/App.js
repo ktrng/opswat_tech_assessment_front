@@ -18,10 +18,9 @@ const App = () => {
     // Targets the file user selected from file input and sets it to state
     setSelectedFile(event.target.files[0])
 
+    // Setting the targeted file to a variable as the data is not a Blob when in state, which is necessary for line 36
     let file = event.target.files[0]
 
-    console.log('hello there')
-    console.log(selectedFile)
     const reader = new FileReader()
 
     // I don't fully understand FileReader() yet
@@ -35,20 +34,22 @@ const App = () => {
     reader.readAsDataURL(file)
   }
 
-  // Logic to for checking hash against MetaDefender API
+  // Logic for checking hash against MetaDefender API. Used when form is submitted
   const checkFile = (event) => {
     event.preventDefault()
 
     // GET request to server to perform hash query. If successfull, sets response to state...
     axios.get(`http://localhost:3003/hash/${fileHash}`).then(
       (response) => {
-        console.log('success?')
-        console.log(response.data)
         if (response.data.error) {
-          // ... if hash is not found, file is uploaded using 'uploadFile()' function on line 57
+          // ... if hash is not found, file is uploaded using 'handleUpload' function on line 67
           handleUpload()
         } else {
+          // Setting response data to state
           setFileInfo({...response.data})
+
+          // Function explanation and code on line 107
+          sortScanDetails()
         }
       }
     )
@@ -62,22 +63,17 @@ const App = () => {
   const handleUpload = () => {
     let file = selectedFile
 
+    // Setting form data to a variable then appending the file to it
     const formData = new FormData()
-
     formData.append('file', file)
 
-    console.log('formdata below?')
-    console.log(formData)
-
+    // POST request to server while passing the form data as the request body
     axios.post('http://localhost:3003/file', formData).then(
       (response) => {
-        console.log(response)
-        console.log('ay success bb!')
-
         // Grabs the "data_id" from response from POST request and sets it to state
         setDataId(response.data.data_id)
 
-        // Function to look up file by data_id
+        // Function to look up file by data_id (line 91)
         fileLookUp(dataId)
       }
     )
@@ -92,9 +88,10 @@ const App = () => {
     axios.get(`http://localhost:3003/file/${data_id}`).then(
       (response) => {
         setFileInfo({...response.data})
+        sortScanDetails()
 
-        // Logic to repeatedly send GET requests to the API if progress is not 100% complete (not sure if this works tbh)
-        if (fileInfo.process_info.progress_percentage !== 100) {
+        // Logic to repeatedly send GET requests to the API if progress is not 100% complete (actually just gets stuck in an infinite loop, which does the job, but is a bug)
+        if (response.data.process_info.progress_percentage !== 100) {
           fileLookUp(data_id)
         } else {
           return
@@ -103,64 +100,41 @@ const App = () => {
     )
   }
 
-  // https://stackoverflow.com/questions/26795643/how-to-convert-object-containing-objects-into-array-of-objects
+  // Logic to convert the "scan_details" object from the API response into an array and set it to state so I can map through it and list all of the scan details. Also does the same for the object keys so I can pull the engine names.
+  const sortScanDetails = () => {
+    let detailsArray = []
+    let engineArray = []
+
+    let keys = Object.keys(fileInfo.scan_results.scan_details)
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i]
+      engineArray.push(key)
+      detailsArray.push(fileInfo.scan_results.scan_details[key])
+    }
+    setScanDetails(detailsArray)
+    setEngines(engineArray)
+  }
 
 
-  // The below code block was used to have information displayed while working. It as also my 'workspace' to test things and figure out how things work with the API
-  const getAPIKey = () => {
-    axios.get('http://localhost:3003/hash/05C12A287334386C94131AB8AA00D08A')
+  // The below code block is used to have information displayed while working. You can put in any 'data_id' or you can query a hash with 'http://localhost:3003/hash/{hash}'
+  const showData = () => {
+    axios.get('http://localhost:3003/file/bzIyMDgxM0VuM0t1d3ZwXzdLT0xfQVVMd29Z')
     .then(
       (response) => {
-        console.log(response.data)
         setFileInfo({...response.data})
-        console.log('adsf')
-        console.log(fileInfo)
-        console.log(fileInfo.scan_results.scan_details)
-        // console.log(Object.keys(fileInfo.scan_results.scan_details)[0])
-        // console.log(arrayOfObj)
-
-        // Here is where I tried to convert the "scan_details" object from the API into an array so I could map through it and list all of the scan details... I think I have to convert all the 'sub-objects' to an array too?
-        // let arrayOfObj = null
-        // console.log('array made??')
-        // arrayOfObj = Object.entries(fileInfo.scan_results.scan_details).map((e) => ( { [e[0]]: e[1] } ))
-        // setScanDetails([...arrayOfObj])
-        // console.log(scanDetails)
-        // console.log('working.')
-        // console.log(scanDetails[0]['AegisLab']['scan_time'].toString())
-
-        let detailsArray = []
-        let engineArray = []
-
-        let keys = Object.keys(fileInfo.scan_results.scan_details)
-        for (let i = 0; i < keys.length; i++) {
-          let key = keys[i]
-          console.log('testing 1 2 1 ')
-          console.log(key)
-          engineArray.push(key)
-          detailsArray.push(fileInfo.scan_results.scan_details[key])
-        }
-        console.log(detailsArray)
-        setScanDetails(detailsArray)
-        setEngines(engineArray)
+        sortScanDetails()
       }
     )
     .catch((error) => console.error(error))
   }
 
-
-  // Hook to have getAPIKey() run on app load, so I could have some information displayed while working on the front end
-  useEffect(() => {
-    getAPIKey()
-  }, [])
+  //*********** Uncomment the line below to have data appear *************
+  // showData()
 
   return (
     <div>
       <h1>OPSWAT Tech Assessment</h1>
       <div>
-        <h2>API Key Info</h2>
-        <p>asdf</p><br/>
-
-        <p>{fileHash}</p>
         <form onSubmit={(event) => checkFile(event)}>
           <input id="input" type="file" name="file" onChange={(event) => handleFile(event)}></input>
           <br/>
