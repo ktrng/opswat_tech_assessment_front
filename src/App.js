@@ -3,13 +3,14 @@ import axios from 'axios'
 const CryptoJS = require("crypto-js")
 
 const App = () => {
-  
+
   // Initializing states
   let [fileInfo, setFileInfo] = useState({})
   let [fileHash, setFileHash] = useState('')
   let [scanDetails, setScanDetails] = useState([])
   let [selectedFile, setSelectedFile] = useState({})
   let [dataId, setDataId] = useState('')
+  let [engines, setEngines] = useState([])
 
 
   // Logic for calculating file hash (MD5)
@@ -23,7 +24,7 @@ const App = () => {
     console.log(selectedFile)
     const reader = new FileReader()
 
-    // I don't fully understand FileReader() yet   
+    // I don't fully understand FileReader() yet
     reader.addEventListener("loadend", (e) => {
       if (e.target.readyState == FileReader.DONE) {
         //converts file to hash using crypto-js
@@ -44,6 +45,7 @@ const App = () => {
         console.log('success?')
         console.log(response.data)
         if (response.data.error) {
+          // ... if hash is not found, file is uploaded using 'uploadFile()' function on line 57
           handleUpload()
         } else {
           setFileInfo({...response.data})
@@ -51,7 +53,6 @@ const App = () => {
       }
     )
     .catch((error) => {
-      // ... if hash is not found, file is uploaded using 'uploadFile()' function on line 57
       console.error(error)
     })
   }
@@ -103,8 +104,8 @@ const App = () => {
   }
 
   // https://stackoverflow.com/questions/26795643/how-to-convert-object-containing-objects-into-array-of-objects
-  
-  
+
+
   // The below code block was used to have information displayed while working. It as also my 'workspace' to test things and figure out how things work with the API
   const getAPIKey = () => {
     axios.get('http://localhost:3003/hash/05C12A287334386C94131AB8AA00D08A')
@@ -118,32 +119,47 @@ const App = () => {
         // console.log(Object.keys(fileInfo.scan_results.scan_details)[0])
         // console.log(arrayOfObj)
 
-        // Here is where I tried to convert the "scan_details" object into an array so I could map through it and list all of the scan details
-        let arrayOfObj = null
-        console.log('array made??')
-        arrayOfObj = Object.entries(fileInfo.scan_results.scan_details).map((e) => ( { [e[0]]: e[1] } ))
-        setScanDetails([...arrayOfObj])
-        console.log(scanDetails)
-        console.log('working.')
-        console.log(scanDetails[0]['AegisLab']['scan_time'].toString())
+        // Here is where I tried to convert the "scan_details" object from the API into an array so I could map through it and list all of the scan details... I think I have to convert all the 'sub-objects' to an array too?
+        // let arrayOfObj = null
+        // console.log('array made??')
+        // arrayOfObj = Object.entries(fileInfo.scan_results.scan_details).map((e) => ( { [e[0]]: e[1] } ))
+        // setScanDetails([...arrayOfObj])
+        // console.log(scanDetails)
+        // console.log('working.')
+        // console.log(scanDetails[0]['AegisLab']['scan_time'].toString())
+
+        let detailsArray = []
+        let engineArray = []
+
+        let keys = Object.keys(fileInfo.scan_results.scan_details)
+        for (let i = 0; i < keys.length; i++) {
+          let key = keys[i]
+          console.log('testing 1 2 1 ')
+          console.log(key)
+          engineArray.push(key)
+          detailsArray.push(fileInfo.scan_results.scan_details[key])
+        }
+        console.log(detailsArray)
+        setScanDetails(detailsArray)
+        setEngines(engineArray)
       }
     )
     .catch((error) => console.error(error))
   }
 
-  
+
   // Hook to have getAPIKey() run on app load, so I could have some information displayed while working on the front end
   useEffect(() => {
     getAPIKey()
   }, [])
-  
+
   return (
     <div>
       <h1>OPSWAT Tech Assessment</h1>
       <div>
         <h2>API Key Info</h2>
         <p>asdf</p><br/>
-        
+
         <p>{fileHash}</p>
         <form onSubmit={(event) => checkFile(event)}>
           <input id="input" type="file" name="file" onChange={(event) => handleFile(event)}></input>
@@ -161,11 +177,11 @@ const App = () => {
             return (
               <>
                 <hr/>
-                <li key={index}>
-                  <p>Engine: {scanDetails[index]['AegisLab']['def_time']}</p>
-                  <p>Threat Found: {scanDetails[index]['AegisLab']['def_time']}</p>
-                  <p>Scan Result: {scanDetails[index]['AegisLab']['def_time']}</p>
-                  <p>Def Time: {scanDetails[index]['AegisLab']['def_time']}</p>
+                <li>
+                  <p>Engine: {engines[index]}</p>
+                  <p>Threat Found: {details.threat_found ? details.threat_found : '0'}</p>
+                  <p>Scan Result: {details.scan_result_i}</p>
+                  <p>Def Time: {details.def_time}</p>
                 </li>
                 <hr/>
               </>
